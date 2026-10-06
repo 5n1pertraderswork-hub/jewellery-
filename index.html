@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shypracreations | Fine Elegance</title>
+    <meta name="description" content="Discover exquisite handcrafted jewelry at Shypracreations. Elegance designed for you.">
+    
+    <!-- Google Fonts: Playfair Display for elegant headings, Inter for clean body text -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <!-- Phosphor Icons for elegant UI icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            gold: '#D4AF37', // Classic Gold
+                            lightGold: '#F3E5AB',
+                            dark: '#111111',
+                            charcoal: '#333333',
+                            cream: '#FDFBF7', // Off-white for background
+                        }
+                    },
+                    fontFamily: {
+                        serif: ['"Playfair Display"', 'serif'],
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    animation: {
+                        'fade-in-up': 'fadeInUp 0.8s ease-out forwards',
+                    },
+                    keyframes: {
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom Styles for things Tailwind is too verbose for */
+        body {
+            background-color: #FDFBF7;
+            color: #111111;
+        }
+        
+        .nav-link {
+            position: relative;
+            transition: color 0.3s ease;
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 1px;
+            bottom: -2px;
+            left: 0;
+            background-color: #D4AF37;
+            transition: width 0.3s ease;
+        }
+        
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        .product-card:hover .product-image {
+            transform: scale(1.05);
+        }
+
+        /* Hide scrollbar for category slider on mobile */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Toast notification styling */
+        #toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 5000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .toast {
+            background-color: #111111;
+            color: #FDFBF7;
+            padding: 12px 24px;
+            border-left: 4px solid #D4AF37;
+            border-radius: 4px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transform: translateX(120%);
+            transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        .toast.show {
+            transform: translateX(0);
+        }
+    </style>
+</head>
+<body class="font-sans antialiased overflow-x-hidden">
+
+    <!-- Navigation -->
+    <header id="navbar" class="fixed w-full z-50 transition-all duration-300 py-4 px-6 md:px-12 bg-transparent text-white">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            
+            <!-- Mobile Menu Button -->
+            <button id="mobile-menu-btn" class="md:hidden text-2xl focus:outline-none">
+                <i class="ph ph-list"></i>
+            </button>
+
+            <!-- Logo -->
+            <a href="#" class="font-serif text-2xl md:text-3xl font-semibold tracking-wider text-center flex-grow md:flex-grow-0">
+                SHYPRA<span class="text-brand-gold italic font-light text-xl">creations</span>
+            </a>
+
+            <!-- Desktop Links -->
+            <nav class="hidden md:flex space-x-8 text-sm font-medium tracking-widest uppercase">
+                <a href="#collections" class="nav-link hover:text-brand-gold">Collections</a>
+                <a href="#new-arrivals" class="nav-link hover:text-brand-gold">New In</a>
+                <a href="#shop" class="nav-link hover:text-brand-gold">Shop</a>
+                <a href="#about" class="nav-link hover:text-brand-gold">Our Story</a>
+            </nav>
+
+            <!-- Actions -->
+            <div class="flex items-center space-x-4 md:space-x-6 text-xl">
+                <button class="hover:text-brand-gold transition"><i class="ph ph-magnifying-glass"></i></button>
+                <button class="hover:text-brand-gold transition"><i class="ph ph-user"></i></button>
+                <button class="hover:text-brand-gold transition relative group" onclick="showToast('Opened Shopping Cart')">
+                    <i class="ph ph-shopping-bag"></i>
+                    <span id="cart-count" class="absolute -top-1 -right-2 bg-brand-gold text-brand-dark text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">0</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Menu Overlay -->
+        <div id="mobile-menu" class="fixed inset-0 bg-brand-dark text-white flex flex-col items-center justify-center space-y-8 text-2xl font-serif hidden opacity-0 transition-opacity duration-300">
+            <button id="close-menu-btn" class="absolute top-6 right-6 text-3xl hover:text-brand-gold">
+                <i class="ph ph-x"></i>
+            </button>
+            <a href="#home" class="mobile-link hover:text-brand-gold">Home</a>
+            <a href="#collections" class="mobile-link hover:text-brand-gold">Collections</a>
+            <a href="#new-arrivals" class="mobile-link hover:text-brand-gold">New Arrivals</a>
+            <a href="#shop" class="mobile-link hover:text-brand-gold">Shop All</a>
+            <a href="#about" class="mobile-link hover:text-brand-gold">Our Story</a>
+            <a href="#contact" class="mobile-link hover:text-brand-gold">Contact</a>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section id="home" class="relative h-screen w-full flex items-center justify-center overflow-hidden">
+        <!-- Background Image with Overlay -->
+        <div class="absolute inset-0 z-0">
+            <img src="https://images.unsplash.com/photo-1611591437281-460bfbe1220a?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80" alt="Elegant Jewelry Model" class="w-full h-full object-cover object-center" />
+            <div class="absolute inset-0 bg-black/40"></div>
+        </div>
+
+        <!-- Hero Content -->
+        <div class="relative z-10 text-center text-white px-4 max-w-3xl opacity-0 animate-fade-in-up">
+            <p class="text-brand-gold tracking-[0.3em] text-xs md:text-sm uppercase mb-4">Timeless Elegance</p>
+            <h1 class="font-serif text-5xl md:text-7xl mb-6 leading-tight">Crafted for Your <br/> Most Precious Moments</h1>
+            <p class="text-gray-200 text-sm md:text-base font-light mb-10 max-w-xl mx-auto">Discover the artistry of Shypracreations. Handcrafted fine jewelry designed to elevate your everyday and celebrate your legacy.</p>
+            <a href="#shop" class="inline-block border border-white px-10 py-3 text-sm tracking-widest uppercase hover:bg-white hover:text-brand-dark transition duration-300">
+                Explore Collection
+            </a>
+        </div>
+    </section>
+
+    <!-- Value Proposition Banner -->
+    <section class="bg-brand-dark text-white py-8 border-b border-gray-800">
+        <div class="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-6 text-center divide-y md:divide-y-0 md:divide-x divide-gray-800">
+            <div class="flex flex-col items-center py-4 md:py-0">
+                <i class="ph ph-shield-check text-3xl text-brand-gold mb-2"></i>
+                <h3 class="font-serif text-lg">Lifetime Warranty</h3>
+                <p class="text-xs text-gray-400 mt-1 font-light">On all our diamond pieces</p>
+            </div>
+            <div class="flex flex-col items-center py-4 md:py-0">
+                <i class="ph ph-truck text-3xl text-brand-gold mb-2"></i>
+                <h3 class="font-serif text-lg">Complimentary Shipping</h3>
+                <p class="text-xs text-gray-400 mt-1 font-light">Worldwide fully insured</p>
+            </div>
+            <div class="flex flex-col items-center py-4 md:py-0">
+                <i class="ph ph-gem-profile text-3xl text-brand-gold mb-2"></i>
+                <h3 class="font-serif text-lg">Ethically Sourced</h3>
+                <p class="text-xs text-gray-400 mt-1 font-light">Conflict-free diamonds & gems</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Shop by Category -->
+    <section id="collections" class="py-24 bg-brand-cream">
+        <div class="max-w-7xl mx-auto px-4 md:px-8">
+            <div class="text-center mb-16">
+                <h2 class="font-serif text-3xl md:text-5xl text-brand-dark mb-4">Curated Collections</h2>
+                <div class="w-16 h-[1px] bg-brand-gold mx-auto"></div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Category 1 -->
+                <a href="#shop" class="group relative h-[450px] overflow-hidden">
+                    <img src="https://images.unsplash.com/photo-1605100804763-247f6612d540?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Rings" class="w-full h-full object-cover transition duration-700 group-hover:scale-105">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+                    <div class="absolute bottom-8 left-8 text-white">
+                        <h3 class="font-serif text-2xl mb-2">Engagement Rings</h3>
+                        <span class="text-sm border-b border-brand-gold pb-1 tracking-wider uppercase flex items-center gap-2 group-hover:text-brand-gold transition">Shop Now <i class="ph ph-arrow-right"></i></span>
+                    </div>
+                </a>
+                
+                <!-- Category 2 -->
+                <a href="#shop" class="group relative h-[450px] overflow-hidden">
+                    <img src="https://images.unsplash.com/photo-1599643478524-fb506464a430?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Necklaces" class="w-full h-full object-cover transition duration-700 group-hover:scale-105">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+                    <div class="absolute bottom-8 left-8 text-white">
+                        <h3 class="font-serif text-2xl mb-2">Fine Necklaces</h3>
+                        <span class="text-sm border-b border-brand-gold pb-1 tracking-wider uppercase flex items-center gap-2 group-hover:text-brand-gold transition">Shop Now <i class="ph ph-arrow-right"></i></span>
+                    </div>
+                </a>
+
+                <!-- Category 3 -->
+                <a href="#shop" class="group relative h-[450px] overflow-hidden">
+                    <img src="https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Earrings" class="w-full h-full object-cover transition duration-700 group-hover:scale-105">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+                    <div class="absolute bottom-8 left-8 text-white">
+                        <h3 class="font-serif text-2xl mb-2">Elegant Earrings</h3>
+                        <span class="text-sm border-b border-brand-gold pb-1 tracking-wider uppercase flex items-center gap-2 group-hover:text-brand-gold transition">Shop Now <i class="ph ph-arrow-right"></i></span>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- New Arrivals Section -->
+    <section id="new-arrivals" class="py-24 bg-white">
+        <div class="max-w-7xl mx-auto px-4 md:px-8">
+            <div class="text-center mb-16">
+                <p class="text-brand-gold tracking-[0.2em] text-xs uppercase mb-3">Just In</p>
+                <h2 class="font-serif text-3xl md:text-5xl text-brand-dark mb-4">New Arrivals</h2>
+                <div class="w-16 h-[1px] bg-brand-dark mx-auto"></div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- New Product 1 -->
+                <div class="group product-card cursor-pointer">
+                    <div class="relative w-full aspect-[4/5] bg-gray-100 overflow-hidden mb-4">
+                        <img src="https://images.unsplash.com/photo-1622398925373-3f91b1e275f5?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Emerald Cut Solitaire" class="product-image w-full h-full object-cover transition duration-500">
+                        <div class="absolute top-4 left-4 bg-brand-gold text-brand-dark text-xs font-bold px-3 py-1 tracking-wider">NEW</div>
+                        <button onclick="addToCart('Emerald Cut Solitaire', 3200)" class="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white/95 text-black px-6 py-3 text-sm tracking-widest uppercase opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-brand-gold hover:text-white w-11/12 text-center">
+                            Add to Cart
+                        </button>
+                    </div>
+                    <div class="text-center">
+                        <h3 class="font-serif text-lg text-brand-dark mb-1">Emerald Cut Solitaire</h3>
+                        <p class="text-brand-gold font-medium">$3,200</p>
+                    </div>
+                </div>
+
+                <!-- New Product 2 -->
+                <div class="group product-card cursor-pointer">
+                    <div class="relative w-full aspect-[4/5] bg-gray-100 overflow-hidden mb-4">
+                        <img src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Diamond Tennis Bracelet" class="product-image w-full h-full object-cover transition duration-500">
+                        <button onclick="addToCart('Diamond Tennis Bracelet', 4500)" class="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white/95 text-black px-6 py-3 text-sm tracking-widest uppercase opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-brand-gold hover:text-white w-11/12 text-center">
+                            Add to Cart
+                        </button>
+                    </div>
+                    <div class="text-center">
+                        <h3 class="font-serif text-lg text-brand-dark mb-1">Diamond Tennis Bracelet</h3>
+                        <p class="text-brand-gold font-medium">$4,500</p>
+                    </div>
+                </div>
+
+                <!-- New Product 3 -->
+                <div class="group product-card cursor-pointer">
+                    <div class="relative w-full aspect-[4/5] bg-gray-100 overflow-hidden mb-4">
+                        <img src="https://images.unsplash.com/photo-1630138977113-d02ce3f684ea?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Rose Gold Drop Earrings" class="product-image w-full h-full object-cover transition duration-500">
+                        <div class="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition">
+                            <i class="ph-fill ph-heart text-xl"></i>
+                        </div>
+                        <button onclick="addToCart('Rose Gold Drop Earrings', 890)" class="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white/95 text-black px-6 py-3 text-sm tracking-widest uppercase opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-brand-gold hover:text-white w-11/12 text-center">
+                            Add to Cart
+                        </button>
+                    </div>
+                    <div class="text-center">
+                        <h3 class="font-serif text-lg text-brand-dark mb-1">Rose Gold Drop Earrings</h3>
+                        <p class="text-brand-gold font-medium">$890</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-16 text-center">
+                <a href="#shop" class="inline-block text-sm font-medium tracking-wider uppercase border border-black px-10 py-4 hover:bg-black hover:text-white transition">Discover More</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Bestsellers / Extended Shop Section -->
+    <section id="shop" class="py-24 bg-brand-cream">
+        <div class="max-w-7xl mx-auto px-4 md:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-end mb-12 border-b border-gray-200 pb-6">
+                <div>
+                    <h2 class="font-serif text-3xl md:text-4xl text-brand-dark mb-3">The Signature Collection</h2>
+                    <p class="text-gray-500 font-light text-sm max-w-xl">Explore our most iconic designs, crafted with precision and passion for those who appreciate true luxury.</p>
+                </div>
+                
+                <!-- Filters Placeholder -->
+                <div class="mt-6 md:mt-0 flex space-x-4">
+                    <select class="bg-transparent border border-gray-300 text-sm py-2 px-4 focus:outline-none focus:border-brand-gold">
+                        <option>Sort by: Featured</option>
+                        <option>Price: Low to High</option>
+                        <option>Price: High to Low</option>
+                        <option>Newest</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Product Grid - Expanded to 8 items -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-12">
+                
+                <!-- Product 1 -->
+                <div class="group product-card cursor-pointer">
+                    <div class="relative w-full aspect-[4/5] bg-gray-100 overflow-hidden mb-4">
+                        <img src="https://images.unsplash.com/photo-1605100481845-661706690466?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Aura Diamond Ring" class="product-image w-full h-full object-cover transition duration-500">
+                        <button onclick="addToCart('Aura Diamond Ring', 1250)" class="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white/95 text-black px-6 py-2 text-sm tracking-widest uppercase opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-brand-gold hover:text-white w-11/12 text-center">
+                            Add to Cart
+                        </button>
+                    </div>
+                    <div class="text-center">
+                        <h3 class="font-serif text-lg text-brand-dark mb-1">Aura Diamond Ring</h3>
+                        <p class="text-brand-gold font-medium">$1,250</p>
+                    </div>
+                </div>
+
+                <!-- Product 2 -->
+                <div class="group product-card cursor-pointer">
+                    <div class="relative w-full aspect-[4/5] bg-gray-100 overflow-hidden mb-4">
+                        <img src="https://images.unsplash.com/photo-1596944924616-7b38e7cfac36?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Celestial Pendant" class="product-image w-full h-full object-cover transition duration-500">
+                        <button onclick="addToCart('Celestial Gold Pendant', 850)" class="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white/95 text-black px-6 py-2 text-sm tracking-widest uppercase opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-brand-gold hover:text-white w-11/12 text-center">
+                            Add to Cart
+                        </button>
+                    </div>
+                    <div class="text-center">
+                        <h3 class="font-serif text-lg text-brand-dark mb-1">Celestial Gold Pendant</h3>
+                        <p class="text-brand-gold font-medium">$850</p>
+                    </div>
+                </div>
+
+                <!-- Product 3 -->
+                <div class="group product-card cursor-pointer">
+                    <div class="relative w-full aspect-[4/5] bg-gray-100 overflow-hidden mb-4">
+                        <img src="https://images.unsplash.com/photo-1610992015732-2449b7634ec8?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Pearl Drop Earrings" class="product-image w-full h-full object-cover transition duration-500">
+                        <button onclick="addToCart('Freshwater Pearl Drops', 420)" class="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white/95 text-black px-6 py-2 text-sm tracking-widest uppercase opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-brand-gold hover:text-white w-11/12 text-center">
+                            Add to Cart
+                        </button>
+                    </div>
+                    <div class="text-center">
+                        <h3 class="font-serif text-lg text-brand-dark mb-1">Freshwater Pearl Drops</h3>
+                        <p class="text-brand-gold font-medium">$420</p>
+                    </div>
+                </div>
+
+                <!-- Product 4 -->
+                <div class="group product-card cursor-pointer">
+                    <div class="relative w-full aspect-[4/5] bg-gray-100 overflow-hidden mb-4">
+                        <img src="https://images.unsplash.com/photo-1573408301145-b98c46544405?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Eternity Band" class="product-image w-full h-full object-cover transition duration-500">
+                        <button onclick="addToCart('Sapphire Eternity Band', 1890)" class="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white/95 text-black px-6 py-2 text-sm tracking-widest uppercase opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-brand-gold hover:text-white w-11/12 text-center">
+                            Add to Cart
+                        </button>
+                    </div>
+                    <div class="text-center">
+                        <h3 class="font-serif text-lg text-brand-dark mb-1">Sapphire Eternity Band</h3>
+                        <p class="text-brand-gold font-medium">$1,890</p>
+                    </div>
+                </div>
+                
+                <!-- Product 5 -->
+                <div class="group product-card cursor-pointer">
+                    <div class="relative w-full aspect-[4/5] bg-gray-100 overflow-hidden mb-4">
+                        <img src="https://images.unsplash.com/photo-1599643477874-5c866f473c88?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Vintage Locket" class="product-image w-full h-full object-cover transition duration-500">
+                        <div class="absolute top-4 left-4 bg-gray-900 text-white text-xs px-2 py-1 tracking-wider">SOLD OUT</div>
+                        <button class="absolute bottom-4 left-1/2 -translate-x-1/2 bg-gray-200 text-gray-500 px-6 py-2 text-sm tracking-widest uppercase opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-11/12 text-center cursor-not-allowed">
+                            Notify Me
+                        </button>
+                    </div>
+                    <div class="text-center">
+                        <h3 class="font-serif text-lg text-gray-500 mb-1 line-through">Vintage Gold Locket</h3>
+                        <p class="text-gray-400 font-medium">$650</p>
+                    </div>
+                </div>
+
+                <!-- Product 6 -->
+                <div class="group product-card cursor-pointer">
+                    <div class="relative w-full aspect-[4/5] bg-gray-100 overflow-hidden mb-4">
+                        <img src="https://images.unsplash.com/photo-1611591437281-460bfbe1220a?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Diamond Choker" class="product-image w-full h-full object-cover transition duration-500">
+                        <button onclick="addToCart('Diamond Choker Necklace', 5200)" class="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white/95 text-black px-6 py-2 text-sm tracking-widest uppercase opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-brand-gold hover:text-white w-11/12 text-center">
+                            Add to Cart
+                        </button>
+                    </div>
+                    <div class="text-center">
+                        <h3 class="font-serif text-lg text-brand-dark mb-1">Diamond Choker Necklace</h3>
+                        <p class="text-brand-gold font-medium">$5,200</p>
+                    </div>
+                </div>
+
+                <!-- Product 7 -->
+                <div class="group product-card cursor-pointer">
+                    <div class="relative w-full aspect-[4/5] bg-gray-100 overflow-hidden mb-4">
+                        <img src="https://images.unsplash.com/photo-1589831377283-33cb1cc6bd5d?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Ruby Halo Ring" class="product-image w-full h-full object-cover transition duration-500">
+                        <button onclick="addToCart('Ruby Halo Engagement Ring', 2850)" class="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white/95 text-black px-6 py-2 text-sm tracking-widest uppercase opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-brand-gold hover:text-white w-11/12 text-center">
+                            Add to Cart
+                        </button>
+                    </div>
+                    <div class="text-center">
+                        <h3 class="font-serif text-lg text-brand-dark mb-1">Ruby Halo Engagement Ring</h3>
+                        <p class="text-brand-gold font-medium">$2,850</p>
+                    </div>
+                </div>
+
+                <!-- Product 8 -->
+                <div class="group product-card cursor-pointer">
+                    <div class="relative w-full aspect-[4/5] bg-gray-100 overflow-hidden mb-4">
+                        <img src="https://images.unsplash.com/photo-1611085583191-a3b181a88401?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Gold Cuff" class="product-image w-full h-full object-cover transition duration-500">
+                        <button onclick="addToCart('Hammered Gold Cuff', 920)" class="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white/95 text-black px-6 py-2 text-sm tracking-widest uppercase opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-brand-gold hover:text-white w-11/12 text-center">
+                            Add to Cart
+                        </button>
+                    </div>
+                    <div class="text-center">
+                        <h3 class="font-serif text-lg text-brand-dark mb-1">Hammered Gold Cuff</h3>
+                        <p class="text-brand-gold font-medium">$920</p>
+                    </div>
+                </div>
+
+            </div>
+            
+            <!-- Pagination -->
+            <div class="mt-16 flex justify-center space-x-2">
+                <button class="w-10 h-10 border border-gray-300 flex items-center justify-center hover:bg-brand-dark hover:text-white transition"><i class="ph ph-caret-left"></i></button>
+                <button class="w-10 h-10 bg-brand-dark text-white flex items-center justify-center">1</button>
+                <button class="w-10 h-10 border border-gray-300 flex items-center justify-center hover:bg-gray-100 transition">2</button>
+                <button class="w-10 h-10 border border-gray-300 flex items-center justify-center hover:bg-gray-100 transition">3</button>
+                <button class="w-10 h-10 border border-gray-300 flex items-center justify-center hover:bg-brand-dark hover:text-white transition"><i class="ph ph-caret-right"></i></button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Split Features Section -->
+    <section class="py-0 flex flex-col lg:flex-row w-full">
+        <div class="w-full lg:w-1/2 h-[50vh] lg:h-[70vh] bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1573408301145-b98c46544405?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80');">
+            <!-- Image Left -->
+        </div>
+        <div class="w-full lg:w-1/2 bg-white flex items-center justify-center p-12 lg:p-24 text-center lg:text-left">
+            <div class="max-w-lg">
+                <h2 class="font-serif text-3xl md:text-4xl text-brand-dark mb-6">Bespoke Design Service</h2>
+                <p class="text-gray-600 font-light mb-8 leading-relaxed">
+                    Can't find exactly what you're looking for? Work directly with our master jewelers to bring your vision to life. From selecting the perfect diamond to crafting a unique setting, your bespoke journey starts here.
+                </p>
+                <a href="#contact" class="inline-block border-b-2 border-brand-gold pb-1 text-sm font-medium tracking-wider uppercase hover:text-brand-gold transition">
+                    Book a Consultation
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Story Section -->
+    <section id="about" class="py-24 bg-brand-cream overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4 md:px-8 flex flex-col md:flex-row-reverse items-center gap-16">
+            
+            <div class="w-full md:w-1/2 relative">
+                <div class="absolute -top-4 -right-4 w-32 h-32 bg-brand-gold/20 z-0 rounded-full"></div>
+                <img src="https://images.unsplash.com/photo-1588444837495-c6cfeb53f32d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" alt="Jewelry Craftsmanship" class="relative z-10 w-full h-auto object-cover rounded-sm shadow-2xl">
+            </div>
+
+            <div class="w-full md:w-1/2 text-center md:text-left">
+                <p class="text-brand-gold tracking-[0.2em] text-xs uppercase mb-3">Our Heritage</p>
+                <h2 class="font-serif text-3xl md:text-5xl text-brand-dark mb-6 leading-tight">Master Craftsmanship <br/> & Dedication</h2>
+                <p class="text-gray-600 font-light mb-6 leading-relaxed">
+                    At Shypracreations, every piece is a testament to timeless design and unparalleled artistry. Founded on the belief that jewelry is an intimate reflection of one's journey, we meticulously source only the finest materials from around the globe.
+                </p>
+                <p class="text-gray-600 font-light mb-8 leading-relaxed">
+                    Our master artisans in our private ateliers blend traditional goldsmithing techniques with modern aesthetics to forge pieces that aren't just worn, but cherished across generations as family heirlooms.
+                </p>
+                <div class="flex items-center justify-center md:justify-start gap-4">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Signature_of_John_Hancock.svg/1200px-Signature_of_John_Hancock.svg.png" alt="Founder Signature" class="h-12 opacity-50 filter grayscale">
+                    <div>
+                        <p class="font-serif font-bold text-gray-800">Shypra Doe</p>
+                        <p class="text-xs text-gray-500 uppercase tracking-wider">Founder & Head Designer</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section class="py-24 bg-white">
+        <div class="max-w-4xl mx-auto px-4 text-center">
+            <i class="ph-fill ph-quotes text-4xl text-brand-gold/30 mb-6 inline-block"></i>
+            <h2 class="font-serif text-2xl md:text-4xl text-brand-dark mb-8 leading-relaxed italic">
+                "The engagement ring I purchased from Shypracreations left my fiancée speechless. The attention to detail and the brilliance of the diamond are truly unmatched. A wonderful experience from start to finish."
+            </h2>
+            <p class="text-sm font-medium tracking-wider uppercase">— James T., New York</p>
+            
+            <div class="flex justify-center gap-2 mt-8">
+                <div class="w-2 h-2 rounded-full bg-brand-gold"></div>
+                <div class="w-2 h-2 rounded-full bg-gray-300"></div>
+                <div class="w-2 h-2 rounded-full bg-gray-300"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Instagram Feed Placeholder -->
+    <section class="py-0 border-t border-gray-100">
+        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 w-full">
+            <a href="#" class="block relative group aspect-square overflow-hidden">
+                <img src="https://images.unsplash.com/photo-1599643478524-fb506464a430?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="Instagram 1" class="w-full h-full object-cover transition duration-500 group-hover:scale-110">
+                <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <i class="ph ph-instagram-logo text-white text-3xl"></i>
+                </div>
+            </a>
+            <a href="#" class="block relative group aspect-square overflow-hidden">
+                <img src="https://images.unsplash.com/photo-1605100481845-661706690466?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="Instagram 2" class="w-full h-full object-cover transition duration-500 group-hover:scale-110">
+                <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <i class="ph ph-instagram-logo text-white text-3xl"></i>
+                </div>
+            </a>
+            <a href="#" class="block relative group aspect-square overflow-hidden">
+                <img src="https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="Instagram 3" class="w-full h-full object-cover transition duration-500 group-hover:scale-110">
+                <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <i class="ph ph-instagram-logo text-white text-3xl"></i>
+                </div>
+            </a>
+            <a href="#" class="block relative group aspect-square overflow-hidden hidden md:block">
+                <img src="https://images.unsplash.com/photo-1622398925373-3f91b1e275f5?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="Instagram 4" class="w-full h-full object-cover transition duration-500 group-hover:scale-110">
+                <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <i class="ph ph-instagram-logo text-white text-3xl"></i>
+                </div>
+            </a>
+            <a href="#" class="block relative group aspect-square overflow-hidden hidden lg:block">
+                <img src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="Instagram 5" class="w-full h-full object-cover transition duration-500 group-hover:scale-110">
+                <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <i class="ph ph-instagram-logo text-white text-3xl"></i>
+                </div>
+            </a>
+            <a href="#" class="block relative group aspect-square overflow-hidden hidden lg:block bg-brand-cream flex flex-col items-center justify-center p-6 text-center hover:bg-brand-gold/10 transition">
+                <i class="ph ph-instagram-logo text-3xl text-brand-dark mb-2"></i>
+                <h3 class="font-serif text-lg mb-1">Follow Us</h3>
+                <p class="text-xs text-gray-500">@shypracreations</p>
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-brand-dark text-white pt-20 pb-10">
+        <div class="max-w-7xl mx-auto px-4 md:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-12 mb-16 border-b border-gray-800 pb-16">
+                
+                <!-- Brand Info -->
+                <div class="col-span-1 md:col-span-4">
+                    <a href="#" class="font-serif text-2xl tracking-wider inline-block mb-6">
+                        SHYPRA<span class="text-brand-gold italic font-light text-lg">creations</span>
+                    </a>
+                    <p class="text-gray-400 text-sm font-light mb-6 pr-8 leading-relaxed">Redefining modern luxury with handcrafted fine jewelry designed for the extraordinary moments in life. Based in New York, shining worldwide.</p>
+                    <div class="flex space-x-5">
+                        <a href="#" class="text-gray-400 hover:text-brand-gold transition text-xl"><i class="ph-fill ph-instagram-logo"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-brand-gold transition text-xl"><i class="ph-fill ph-facebook-logo"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-brand-gold transition text-xl"><i class="ph-fill ph-pinterest-logo"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-brand-gold transition text-xl"><i class="ph-fill ph-tiktok-logo"></i></a>
+                    </div>
+                </div>
+
+                <!-- Links 1 -->
+                <div class="col-span-1 md:col-span-2">
+                    <h4 class="font-serif text-lg mb-6 tracking-wide">Shop</h4>
+                    <ul class="space-y-4 text-sm text-gray-400 font-light">
+                        <li><a href="#" class="hover:text-white transition">All Jewelry</a></li>
+                        <li><a href="#" class="hover:text-white transition">Rings</a></li>
+                        <li><a href="#" class="hover:text-white transition">Necklaces</a></li>
+                        <li><a href="#" class="hover:text-white transition">Earrings</a></li>
+                        <li><a href="#" class="hover:text-white transition">Bracelets</a></li>
+                        <li><a href="#" class="hover:text-white transition">Bridal Collection</a></li>
+                    </ul>
+                </div>
+
+                <!-- Links 2 -->
+                <div class="col-span-1 md:col-span-2">
+                    <h4 class="font-serif text-lg mb-6 tracking-wide">Support</h4>
+                    <ul class="space-y-4 text-sm text-gray-400 font-light">
+                        <li><a href="#" class="hover:text-white transition">Contact Us</a></li>
+                        <li><a href="#" class="hover:text-white transition">Shipping & Returns</a></li>
+                        <li><a href="#" class="hover:text-white transition">Ring Size Guide</a></li>
+                        <li><a href="#" class="hover:text-white transition">Jewelry Care</a></li>
+                        <li><a href="#" class="hover:text-white transition">Track Order</a></li>
+                        <li><a href="#" class="hover:text-white transition">FAQ</a></li>
+                    </ul>
+                </div>
+
+                <!-- Newsletter -->
+                <div class="col-span-1 md:col-span-4">
+                    <h4 class="font-serif text-lg mb-6 tracking-wide">Join Our World</h4>
+                    <p class="text-gray-400 text-sm font-light mb-6">Subscribe to receive updates on new arrivals, exclusive access to limited pieces, and insider-only privileges.</p>
+                    <form class="flex flex-col space-y-4" onsubmit="event.preventDefault(); showToast('Subscribed to Newsletter!');">
+                        <div class="relative">
+                            <input type="email" placeholder="Email Address" required class="w-full bg-transparent border-b border-gray-600 px-0 py-3 text-sm text-white focus:outline-none focus:border-brand-gold transition pr-24">
+                            <button type="submit" class="absolute right-0 bottom-3 text-sm tracking-widest uppercase text-brand-gold hover:text-white transition">
+                                Subscribe
+                            </button>
+                        </div>
+                    </form>
+                    <div class="mt-8 flex items-center space-x-4 text-3xl text-gray-600">
+                        <i class="ph ph-visa-logo"></i>
+                        <i class="ph ph-mastercard-logo"></i>
+                        <i class="ph ph-paypal-logo"></i>
+                        <i class="ph ph-apple-podcasts-logo"></i> <!-- Placeholder for apple pay -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Copyright -->
+            <div class="flex flex-col md:flex-row justify-between items-center text-xs text-gray-500 font-light pt-4">
+                <p>&copy; 2026 Shypracreations Fine Jewelry. All rights reserved.</p>
+                <div class="flex space-x-6 mt-4 md:mt-0">
+                    <a href="#" class="hover:text-white transition">Privacy Policy</a>
+                    <a href="#" class="hover:text-white transition">Terms of Service</a>
+                    <a href="#" class="hover:text-white transition">Accessibility</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Toast Notifications Container -->
+    <div id="toast-container"></div>
+
+    <!-- Interactive Scripts -->
+    <script>
+        // State
+        let cartItemCount = 0;
+
+        // Elements
+        const navbar = document.getElementById('navbar');
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const closeMenuBtn = document.getElementById('close-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const mobileLinks = document.querySelectorAll('.mobile-link');
+        const cartCountDisplay = document.getElementById('cart-count');
+        const toastContainer = document.getElementById('toast-container');
+
+        // Scroll Effect for Navbar
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                navbar.classList.remove('bg-transparent', 'py-4');
+                navbar.classList.add('bg-brand-dark', 'py-3', 'shadow-md');
+            } else {
+                navbar.classList.add('bg-transparent', 'py-4');
+                navbar.classList.remove('bg-brand-dark', 'py-3', 'shadow-md');
+            }
+        });
+
+        // Mobile Menu Toggle
+        function toggleMenu() {
+            if (mobileMenu.classList.contains('hidden')) {
+                mobileMenu.classList.remove('hidden');
+                // slight delay for animation to work
+                setTimeout(() => {
+                    mobileMenu.classList.remove('opacity-0');
+                    document.body.style.overflow = 'hidden'; // Prevent scrolling
+                }, 10);
+            } else {
+                mobileMenu.classList.add('opacity-0');
+                document.body.style.overflow = 'auto'; // Re-enable scrolling
+                setTimeout(() => {
+                    mobileMenu.classList.add('hidden');
+                }, 300);
+            }
+        }
+
+        mobileMenuBtn.addEventListener('click', toggleMenu);
+        closeMenuBtn.addEventListener('click', toggleMenu);
+        mobileLinks.forEach(link => {
+            link.addEventListener('click', toggleMenu);
+        });
+
+        // Add to Cart Functionality
+        function addToCart(productName, price) {
+            cartItemCount++;
+            
+            // Animate cart count
+            cartCountDisplay.textContent = cartItemCount;
+            cartCountDisplay.classList.add('scale-150');
+            setTimeout(() => {
+                cartCountDisplay.classList.remove('scale-150');
+            }, 200);
+
+            // Show Custom Toast
+            showToast(`Added ${productName} to cart - $${price}`);
+        }
+
+        // Custom Toast Notification System
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'toast flex items-center justify-between min-w-[250px]';
+            
+            toast.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <i class="ph-fill ph-check-circle text-brand-gold text-xl"></i>
+                    <span class="text-sm font-medium tracking-wide">${message}</span>
+                </div>
+            `;
+
+            toastContainer.appendChild(toast);
+
+            // Trigger reflow for animation
+            void toast.offsetWidth;
+            
+            // Slide in
+            toast.classList.add('show');
+
+            // Remove after 3 seconds
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    toast.remove();
+                }, 300); // Wait for transition
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
